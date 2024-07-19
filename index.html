@@ -17,11 +17,14 @@
         <div id="question-container" class="question"></div>
         <button id="submit-btn" onclick="submitAnswer()">Submit</button>
         <div id="result"></div>
-        <button id="next-btn" onclick="loadNextQuestion()" style="display:none;">Next</button>
+        <button id="next-btn" onclick="loadNextQuestion()" style="display:none;">Next Question</button>
     </div>
 
     <script>
         let currentQuestionIndex = 0;
+        let correctAnswers = 0;
+        let incorrectQuestions = [];
+        const maxQuestions = 10;
         let questions = [];
 
         async function fetchQuestions() {
@@ -37,6 +40,7 @@
                 answer: row[6],
                 explanation: row[7]
             }));
+            questions = questions.slice(0, maxQuestions);
             displayQuestion();
         }
 
@@ -54,24 +58,45 @@
         }
 
         function submitAnswer() {
-            const selectedOption = document.querySelector('input[name="option"]:checked').value;
+            const selectedOption = document.querySelector('input[name="option"]:checked');
             const result = document.getElementById('result');
-            if (selectedOption === questions[currentQuestionIndex].answer) {
+            if (!selectedOption) {
+                result.innerText = 'Please select an answer.';
+                return;
+            }
+            const answer = selectedOption.value;
+            if (answer === questions[currentQuestionIndex].answer) {
                 result.innerText = `Correct! Explanation: ${questions[currentQuestionIndex].explanation}`;
+                correctAnswers++;
             } else {
                 result.innerText = `Wrong answer. Explanation: ${questions[currentQuestionIndex].explanation}`;
+                incorrectQuestions.push(questions[currentQuestionIndex].question);
             }
             document.getElementById('next-btn').style.display = 'block';
         }
 
         function loadNextQuestion() {
             currentQuestionIndex++;
-            if (currentQuestionIndex < questions.length) {
+            if (currentQuestionIndex < maxQuestions) {
                 displayQuestion();
             } else {
-                document.getElementById('question-container').innerText = 'You have completed all the questions!';
-                document.getElementById('next-btn').style.display = 'none';
+                showResults();
             }
+        }
+
+        function showResults() {
+            const container = document.getElementById('question-container');
+            container.innerHTML = `
+                <h2>You have completed the quiz!</h2>
+                <p>Your score: ${correctAnswers}/${maxQuestions}</p>
+                <p>Incorrect questions:</p>
+                <ul>
+                    ${incorrectQuestions.map(question => `<li>${question}</li>`).join('')}
+                </ul>
+                <p>You earned ${correctAnswers * 10} points!</p>
+            `;
+            document.getElementById('next-btn').style.display = 'none';
+            document.getElementById('submit-btn').style.display = 'none';
         }
 
         fetchQuestions();
