@@ -26,18 +26,19 @@
             const sheetId = '1nVxOrDB6ne5fY9P1Ww3cJJFlyX9S6l5v8ellmsvqTBQ'; // 替換為您的Google試算表ID
             const apiKey = 'AIzaSyCFOx8km4xgcbcpquTG1VQC4fyffAJH0Xk'; // 替換為您的API金鑰
             const range = "'Grade1'!A2:H"; // 調整為您的試算表名稱和範圍
-            const corsProxy = 'https://thingproxy.freeboard.io/fetch/'; // 使用新的CORS代理
+            const corsProxy = 'https://api.allorigins.win/get?url='; // 使用新的CORS代理
             const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?key=${apiKey}`;
             try {
-                const response = await fetch(`${corsProxy}${url}`);
+                const response = await fetch(`${corsProxy}${encodeURIComponent(url)}`);
                 const data = await response.json();
-                console.log(data); // 輸出數據到控制台
-                if (data.error) {
-                    console.error("Error fetching data:", data.error);
-                    document.getElementById('result').innerText = `Error fetching data: ${data.error.message}`;
+                const content = JSON.parse(data.contents); // 解析返回的內容
+                console.log(content); // 輸出數據到控制台
+                if (content.error) {
+                    console.error("Error fetching data:", content.error);
+                    document.getElementById('result').innerText = `Error fetching data: ${content.error.message}`;
                     return;
                 }
-                const questions = data.values.map(row => ({
+                const questions = content.values.map(row => ({
                     question: row[0],
                     image: row[1],
                     options: [row[2], row[3], row[4], row[5]],
