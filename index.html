@@ -33,14 +33,14 @@
             const range = 'Grade1!A2:H'; // 調整為您的試算表名稱和範圍
             const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?key=${apiKey}`);
             const data = await response.json();
-            questions = data.values.map(row => ({
+            const allQuestions = data.values.map(row => ({
                 question: row[0],
                 image: row[1],
                 options: [row[2], row[3], row[4], row[5]],
                 answer: row[6],
                 explanation: row[7]
             }));
-            questions = questions.slice(0, maxQuestions);
+            questions = allQuestions.slice(0, maxQuestions);
             displayQuestion();
         }
 
@@ -70,7 +70,7 @@
                 correctAnswers++;
             } else {
                 result.innerText = `Wrong answer. Explanation: ${questions[currentQuestionIndex].explanation}`;
-                incorrectQuestions.push(questions[currentQuestionIndex].question);
+                incorrectQuestions.push(`Question ${currentQuestionIndex + 1}: ${questions[currentQuestionIndex].question}`);
             }
             document.getElementById('next-btn').style.display = 'block';
         }
