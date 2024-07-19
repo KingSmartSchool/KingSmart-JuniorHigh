@@ -25,7 +25,7 @@
         async function fetchQuestions() {
             const sheetId = '1nVxOrDB6ne5fY9P1Ww3cJJFlyX9S6l5v8ellmsvqTBQ'; // 替換為您的Google試算表ID
             const apiKey = 'AIzaSyCFOx8km4xgcbcpquTG1VQC4fyffAJH0Xk'; // 替換為您的API金鑰
-            const range = "'Daily Question'!A2:H"; // 調整為您的試算表名稱和範圍
+            const range = "'Grade1'!A2:H"; // 調整為您的試算表名稱和範圍
             const corsProxy = 'https://cors-anywhere.herokuapp.com/'; // 使用CORS代理
             try {
                 const response = await fetch(`${corsProxy}https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?key=${apiKey}`);
