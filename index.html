@@ -15,9 +15,9 @@
 <body>
     <div class="container">
         <div id="question-container" class="question"></div>
-        <button id="submit-button" onclick="submitAnswer()">Submit</button>
+        <button id="submit-btn" onclick="submitAnswer()">Submit</button>
         <div id="result"></div>
-        <button id="next-button" style="display:none;" onclick="nextQuestion()">Next Question</button>
+        <button id="next-btn" onclick="loadNextQuestion()" style="display:none;">Next</button>
     </div>
 
     <script>
@@ -25,76 +25,52 @@
         let questions = [];
 
         async function fetchQuestions() {
-            const sheetId = '1nVxOrDB6ne5fY9P1Ww3cJJFlyX9S6l5v8ellmsvqTBQ'; // 替換為您的試算表ID
+            const sheetId = '1nVxOrDB6ne5fY9P1Ww3cJJFlyX9S6l5v8ellmsvqTBQ'; // 替換為您的Google試算表ID
             const apiKey = 'AIzaSyCFOx8km4xgcbcpquTG1VQC4fyffAJH0Xk'; // 替換為您的API金鑰
             const range = 'Grade1!A2:H'; // 調整為您的試算表名稱和範圍
-            try {
-                const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?key=${apiKey}`);
-                const data = await response.json();
-                if (data.error) {
-                    console.error("Error fetching data:", data.error);
-                    document.getElementById('result').innerText = `Error fetching data: ${data.error.message}`;
-                } else {
-                    console.log("Data fetched successfully:", data.values);
-                    questions = data.values.map(row => ({
-                        question: row[0],
-                        options: [row[2], row[3], row[4], row[5]],
-                        answer: row[6],
-                        explanation: row[7]
-                    }));
-                    displayQuestion(currentQuestionIndex);
-                }
-            } catch (error) {
-                console.error("Fetch error:", error);
-                document.getElementById('result').innerText = `Fetch error: ${error.message}`;
-            }
+            const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?key=${apiKey}`);
+            const data = await response.json();
+            questions = data.values.map(row => ({
+                question: row[0],
+                image: row[1],
+                options: [row[2], row[3], row[4], row[5]],
+                answer: row[6],
+                explanation: row[7]
+            }));
+            displayQuestion();
         }
 
-        function displayQuestion(index) {
+        function displayQuestion() {
             const container = document.getElementById('question-container');
-            const question = questions[index];
-            let html = `<p>${question.question}</p><ul class="options">`;
-            question.options.forEach((option, i) => {
-                html += `<li><input type="radio" name="option" value="${option}" id="option${i}"> <label for="option${i}">${option}</label></li>`;
+            const question = questions[currentQuestionIndex];
+            let html = `<p>${question.question}</p><img src="${question.image}" alt="Question Image"><ul class="options">`;
+            question.options.forEach((option, index) => {
+                html += `<li><input type="radio" name="option" value="${option}"> ${option}</li>`;
             });
             html += `</ul>`;
             container.innerHTML = html;
+            document.getElementById('result').innerText = '';
+            document.getElementById('next-btn').style.display = 'none';
         }
 
         function submitAnswer() {
-            const selectedOption = document.querySelector('input[name="option"]:checked');
+            const selectedOption = document.querySelector('input[name="option"]:checked').value;
             const result = document.getElementById('result');
-            const submitButton = document.getElementById('submit-button');
-            const nextButton = document.getElementById('next-button');
-            if (selectedOption) {
-                const answer = questions[currentQuestionIndex].answer;
-                const explanation = questions[currentQuestionIndex].explanation;
-                if (selectedOption.value === answer) {
-                    result.innerText = `Correct! Explanation: ${explanation}`;
-                } else {
-                    result.innerText = `Wrong answer. Explanation: ${explanation}`;
-                }
-                submitButton.style.display = 'none';
-                nextButton.style.display = 'inline';
+            if (selectedOption === questions[currentQuestionIndex].answer) {
+                result.innerText = `Correct! Explanation: ${questions[currentQuestionIndex].explanation}`;
             } else {
-                result.innerText = 'Please select an option.';
+                result.innerText = `Wrong answer. Explanation: ${questions[currentQuestionIndex].explanation}`;
             }
+            document.getElementById('next-btn').style.display = 'block';
         }
 
-        function nextQuestion() {
-            const result = document.getElementById('result');
-            const submitButton = document.getElementById('submit-button');
-            const nextButton = document.getElementById('next-button');
+        function loadNextQuestion() {
             currentQuestionIndex++;
             if (currentQuestionIndex < questions.length) {
-                displayQuestion(currentQuestionIndex);
-                result.innerText = ''; // Clear the result for the next question
-                submitButton.style.display = 'inline';
-                nextButton.style.display = 'none';
+                displayQuestion();
             } else {
-                result.innerText = 'You have completed all questions!';
-                submitButton.style.display = 'none';
-                nextButton.style.display = 'none';
+                document.getElementById('question-container').innerText = 'You have completed all the questions!';
+                document.getElementById('next-btn').style.display = 'none';
             }
         }
 
