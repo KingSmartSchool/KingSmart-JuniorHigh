@@ -20,60 +20,68 @@
     </div>
 
     <script>
-        let currentQuestion;
+        let currentQuestionIndex = 0;
+        let questions = [];
 
         async function fetchQuestions() {
-            const sheetId = '1nVxOrDB6ne5fY9P1Ww3cJJFlyX9S6l5v8ellmsvqTBQ'; // 替換為您的Google試算表ID
+            const sheetId = '1nVxOrDB6ne5fY9P1Ww3cJJFlyX9S6l5v8ellmsvqTBQ'; // 替換為您的試算表ID
             const apiKey = 'AIzaSyCFOx8km4xgcbcpquTG1VQC4fyffAJH0Xk'; // 替換為您的API金鑰
-            const range = "'DailyQuestion'!A2:H"; // 調整為您的試算表名稱和範圍
-            const corsProxy = 'https://api.allorigins.win/get?url='; // 使用新的CORS代理
-            const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?key=${apiKey}`;
+            const range = 'Grade1!A2:H'; // 調整為您的試算表名稱和範圍
             try {
-                const response = await fetch(`${corsProxy}${encodeURIComponent(url)}`);
+                const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?key=${apiKey}`);
                 const data = await response.json();
-                const content = JSON.parse(data.contents); // 解析返回的內容
-                console.log(content); // 輸出數據到控制台
-                if (content.error) {
-                    console.error("Error fetching data:", content.error);
-                    document.getElementById('result').innerText = `Error fetching data: ${content.error.message}`;
-                    return;
+                if (data.error) {
+                    console.error("Error fetching data:", data.error);
+                    document.getElementById('result').innerText = `Error fetching data: ${data.error.message}`;
+                } else {
+                    console.log("Data fetched successfully:", data.values);
+                    questions = data.values.map(row => ({
+                        question: row[0],
+                        options: [row[2], row[3], row[4], row[5]],
+                        answer: row[6],
+                        explanation: row[7]
+                    }));
+                    displayQuestion(currentQuestionIndex);
                 }
-                const questions = content.values.map(row => ({
-                    question: row[0],
-                    image: row[1],
-                    options: [row[2], row[3], row[4], row[5]],
-                    answer: row[6],
-                    explanation: row[7]
-                }));
-                currentQuestion = questions[0]; // 這裡只顯示第一個問題作為範例
-                displayQuestion(currentQuestion);
             } catch (error) {
                 console.error("Fetch error:", error);
                 document.getElementById('result').innerText = `Fetch error: ${error.message}`;
             }
         }
 
-        function displayQuestion(question) {
+        function displayQuestion(index) {
             const container = document.getElementById('question-container');
-            let html = `<p>${question.question}</p>`;
-            if (question.image) {
-                html += `<img src="${question.image}" alt="Question Image">`;
-            }
-            html += `<ul class="options">`;
-            question.options.forEach((option, index) => {
-                html += `<li><input type="radio" name="option" value="${option}"> ${option}</li>`;
+            const question = questions[index];
+            let html = `<p>${question.question}</p><ul class="options">`;
+            question.options.forEach((option, i) => {
+                html += `<li><input type="radio" name="option" value="${option}" id="option${i}"> <label for="option${i}">${option}</label></li>`;
             });
             html += `</ul>`;
             container.innerHTML = html;
         }
 
         function submitAnswer() {
-            const selectedOption = document.querySelector('input[name="option"]:checked').value;
+            const selectedOption = document.querySelector('input[name="option"]:checked');
             const result = document.getElementById('result');
-            if (selectedOption === currentQuestion.answer) {
-                result.innerText = `Correct! Explanation: ${currentQuestion.explanation}`;
+            if (selectedOption) {
+                const answer = questions[currentQuestionIndex].answer;
+                const explanation = questions[currentQuestionIndex].explanation;
+                if (selectedOption.value === answer) {
+                    result.innerText = `Correct! Explanation: ${explanation}`;
+                } else {
+                    result.innerText = `Wrong answer. Explanation: ${explanation}`;
+                }
+                currentQuestionIndex++;
+                if (currentQuestionIndex < questions.length) {
+                    setTimeout(() => {
+                        displayQuestion(currentQuestionIndex);
+                        result.innerText = ''; // Clear the result for the next question
+                    }, 3000); // 3 seconds delay before showing the next question
+                } else {
+                    result.innerText += `\nYou have completed all questions!`;
+                }
             } else {
-                result.innerText = `Wrong answer. Explanation: ${currentQuestion.explanation}`;
+                result.innerText = 'Please select an option.';
             }
         }
 
