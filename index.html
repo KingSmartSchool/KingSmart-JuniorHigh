@@ -25,10 +25,11 @@
         async function fetchQuestions() {
             const sheetId = '1nVxOrDB6ne5fY9P1Ww3cJJFlyX9S6l5v8ellmsvqTBQ'; // 替換為您的Google試算表ID
             const apiKey = 'AIzaSyCFOx8km4xgcbcpquTG1VQC4fyffAJH0Xk'; // 替換為您的API金鑰
-            const range = "'每日十題題庫'!A2:H"; // 調整為您的試算表名稱和範圍
+            const range = "'Daily Question'!A2:H"; // 調整為您的試算表名稱和範圍
             try {
                 const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?key=${apiKey}`);
                 const data = await response.json();
+                console.log(data); // 輸出數據到控制台
                 if (data.error) {
                     console.error("Error fetching data:", data.error);
                     document.getElementById('result').innerText = `Error fetching data: ${data.error.message}`;
