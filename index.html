@@ -15,8 +15,9 @@
 <body>
     <div class="container">
         <div id="question-container" class="question"></div>
-        <button onclick="submitAnswer()">Submit</button>
+        <button id="submit-button" onclick="submitAnswer()">Submit</button>
         <div id="result"></div>
+        <button id="next-button" style="display:none;" onclick="nextQuestion()">Next Question</button>
     </div>
 
     <script>
@@ -63,6 +64,8 @@
         function submitAnswer() {
             const selectedOption = document.querySelector('input[name="option"]:checked');
             const result = document.getElementById('result');
+            const submitButton = document.getElementById('submit-button');
+            const nextButton = document.getElementById('next-button');
             if (selectedOption) {
                 const answer = questions[currentQuestionIndex].answer;
                 const explanation = questions[currentQuestionIndex].explanation;
@@ -71,17 +74,27 @@
                 } else {
                     result.innerText = `Wrong answer. Explanation: ${explanation}`;
                 }
-                currentQuestionIndex++;
-                if (currentQuestionIndex < questions.length) {
-                    setTimeout(() => {
-                        displayQuestion(currentQuestionIndex);
-                        result.innerText = ''; // Clear the result for the next question
-                    }, 3000); // 3 seconds delay before showing the next question
-                } else {
-                    result.innerText += `\nYou have completed all questions!`;
-                }
+                submitButton.style.display = 'none';
+                nextButton.style.display = 'inline';
             } else {
                 result.innerText = 'Please select an option.';
+            }
+        }
+
+        function nextQuestion() {
+            const result = document.getElementById('result');
+            const submitButton = document.getElementById('submit-button');
+            const nextButton = document.getElementById('next-button');
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                displayQuestion(currentQuestionIndex);
+                result.innerText = ''; // Clear the result for the next question
+                submitButton.style.display = 'inline';
+                nextButton.style.display = 'none';
+            } else {
+                result.innerText = 'You have completed all questions!';
+                submitButton.style.display = 'none';
+                nextButton.style.display = 'none';
             }
         }
 
