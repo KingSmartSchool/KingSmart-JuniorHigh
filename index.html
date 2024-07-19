@@ -47,7 +47,7 @@
         function displayQuestion() {
             const container = document.getElementById('question-container');
             const question = questions[currentQuestionIndex];
-            let html = `<p>${question.question}</p><img src="${question.image}" alt="Question Image"><ul class="options">`;
+            let html = `<p>Question ${currentQuestionIndex + 1}: ${question.question}</p><img src="${question.image}" alt="Question Image"><ul class="options">`;
             question.options.forEach((option, index) => {
                 html += `<li><input type="radio" name="option" value="${option}"> ${option}</li>`;
             });
@@ -86,6 +86,7 @@
 
         function showResults() {
             const container = document.getElementById('question-container');
+            const totalCoins = correctAnswers * 10; // 每答對一題獲得10個蔥幣
             container.innerHTML = `
                 <h2>You have completed the quiz!</h2>
                 <p>Your score: ${correctAnswers}/${maxQuestions}</p>
@@ -93,7 +94,7 @@
                 <ul>
                     ${incorrectQuestions.map(question => `<li>${question}</li>`).join('')}
                 </ul>
-                <p>You earned ${correctAnswers * 10} points!</p>
+                <p>You earned ${totalCoins} coins!</p>
             `;
             document.getElementById('next-btn').style.display = 'none';
             document.getElementById('submit-btn').style.display = 'none';
