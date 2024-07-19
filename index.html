@@ -41,7 +41,11 @@
 
         function displayQuestion(question) {
             const container = document.getElementById('question-container');
-            let html = `<p>${question.question}</p><img src="${question.image}" alt="Question Image"><ul class="options">`;
+            let html = `<p>${question.question}</p>`;
+            if (question.image) {
+                html += `<img src="${question.image}" alt="Question Image">`;
+            }
+            html += `<ul class="options">`;
             question.options.forEach((option, index) => {
                 html += `<li><input type="radio" name="option" value="${option}"> ${option}</li>`;
             });
