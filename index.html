@@ -41,9 +41,13 @@
                 explanation: row[7]
             }));
 
+            console.log('Loaded questions:', questions);
+
             // 隨機選取十個題目
             const shuffledQuestions = questions.sort(() => 0.5 - Math.random());
             selectedQuestions = shuffledQuestions.slice(0, 10);
+
+            console.log('Selected questions:', selectedQuestions);
 
             currentQuestionIndex = 0;
             score = 0;
