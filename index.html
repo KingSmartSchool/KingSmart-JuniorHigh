@@ -66,9 +66,13 @@
         }
 
         function submitAnswer() {
-            const selectedOption = document.querySelector('input[name="option"]:checked').value;
+            const selectedOption = document.querySelector('input[name="option"]:checked');
+            if (!selectedOption) {
+                alert("Please select an answer.");
+                return;
+            }
             const result = document.getElementById('result');
-            if (selectedOption === selectedQuestions[currentQuestionIndex].answer) {
+            if (selectedOption.value === selectedQuestions[currentQuestionIndex].answer) {
                 score++;
                 result.innerHTML = `Correct! Explanation: ${selectedQuestions[currentQuestionIndex].explanation}`;
             } else {
@@ -76,9 +80,7 @@
                 result.innerHTML = `Wrong answer. Explanation: ${selectedQuestions[currentQuestionIndex].explanation}`;
             }
 
-            // 顯示下一題按鈕或測試結束結果
             if (currentQuestionIndex < selectedQuestions.length - 1) {
-                currentQuestionIndex++;
                 document.getElementById('next-btn').style.display = 'block';
             } else {
                 displayFinalResult();
@@ -86,6 +88,7 @@
         }
 
         function nextQuestion() {
+            currentQuestionIndex++;
             document.getElementById('result').innerHTML = '';
             document.getElementById('next-btn').style.display = 'none';
             displayQuestion(selectedQuestions[currentQuestionIndex]);
