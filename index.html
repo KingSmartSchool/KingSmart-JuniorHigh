@@ -10,94 +10,98 @@
         .question { margin-bottom: 20px; }
         .options { list-style: none; padding: 0; }
         .options li { margin-bottom: 10px; }
+        #next-btn { display: none; }
     </style>
 </head>
 <body>
     <div class="container">
         <div id="question-container" class="question"></div>
-        <button id="submit-btn" onclick="submitAnswer()">Submit</button>
+        <button onclick="submitAnswer()">Submit</button>
+        <button id="next-btn" onclick="nextQuestion()">Next Question</button>
         <div id="result"></div>
-        <button id="next-btn" onclick="loadNextQuestion()" style="display:none;">Next Question</button>
     </div>
 
     <script>
         let currentQuestionIndex = 0;
-        let correctAnswers = 0;
+        let score = 0;
         let incorrectQuestions = [];
-        const maxQuestions = 10;
-        let questions = [];
+        let selectedQuestions = [];
 
         async function fetchQuestions() {
             const sheetId = '1nVxOrDB6ne5fY9P1Ww3cJJFlyX9S6l5v8ellmsvqTBQ'; // 替換為您的Google試算表ID
-            const apiKey = 'AIzaSyCFOx8km4xgcbcpquTG1VQC4fyffAJH0Xk'; // 替換為您的API金鑰
+            const apiKey = 'YOUR_API_KEY'; // 替換為您的API金鑰
             const range = 'Grade1!A2:H'; // 調整為您的試算表名稱和範圍
             const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?key=${apiKey}`);
             const data = await response.json();
-            const allQuestions = data.values.map(row => ({
+            const questions = data.values.map(row => ({
                 question: row[0],
                 image: row[1],
                 options: [row[2], row[3], row[4], row[5]],
                 answer: row[6],
                 explanation: row[7]
             }));
-            questions = allQuestions.slice(0, maxQuestions);
-            displayQuestion();
+
+            // 隨機選取十個題目
+            const shuffledQuestions = questions.sort(() => 0.5 - Math.random());
+            selectedQuestions = shuffledQuestions.slice(0, 10);
+
+            currentQuestionIndex = 0;
+            score = 0;
+            incorrectQuestions = [];
+            displayQuestion(selectedQuestions[currentQuestionIndex]);
         }
 
-        function displayQuestion() {
+        function displayQuestion(question) {
             const container = document.getElementById('question-container');
-            const question = questions[currentQuestionIndex];
-            let html = `<p>Question ${currentQuestionIndex + 1}: ${question.question}</p><img src="${question.image}" alt="Question Image"><ul class="options">`;
+            let html = `<p>Question ${currentQuestionIndex + 1}: ${question.question}</p>`;
+            if (question.image) {
+                html += `<img src="${question.image}" alt="Question Image"><br>`;
+            }
+            html += `<ul class="options">`;
             question.options.forEach((option, index) => {
                 html += `<li><input type="radio" name="option" value="${option}"> ${option}</li>`;
             });
             html += `</ul>`;
             container.innerHTML = html;
-            document.getElementById('result').innerText = '';
-            document.getElementById('next-btn').style.display = 'none';
         }
 
         function submitAnswer() {
-            const selectedOption = document.querySelector('input[name="option"]:checked');
+            const selectedOption = document.querySelector('input[name="option"]:checked').value;
             const result = document.getElementById('result');
-            if (!selectedOption) {
-                result.innerText = 'Please select an answer.';
-                return;
-            }
-            const answer = selectedOption.value;
-            if (answer === questions[currentQuestionIndex].answer) {
-                result.innerText = `Correct! Explanation: ${questions[currentQuestionIndex].explanation}`;
-                correctAnswers++;
+            if (selectedOption === selectedQuestions[currentQuestionIndex].answer) {
+                score++;
+                result.innerHTML = `Correct! Explanation: ${selectedQuestions[currentQuestionIndex].explanation}`;
             } else {
-                result.innerText = `Wrong answer. Explanation: ${questions[currentQuestionIndex].explanation}`;
-                incorrectQuestions.push(`Question ${currentQuestionIndex + 1}: ${questions[currentQuestionIndex].question}`);
+                incorrectQuestions.push(selectedQuestions[currentQuestionIndex]);
+                result.innerHTML = `Wrong answer. Explanation: ${selectedQuestions[currentQuestionIndex].explanation}`;
             }
-            document.getElementById('next-btn').style.display = 'block';
-        }
 
-        function loadNextQuestion() {
-            currentQuestionIndex++;
-            if (currentQuestionIndex < maxQuestions) {
-                displayQuestion();
+            // 顯示下一題按鈕或測試結束結果
+            if (currentQuestionIndex < selectedQuestions.length - 1) {
+                currentQuestionIndex++;
+                document.getElementById('next-btn').style.display = 'block';
             } else {
-                showResults();
+                displayFinalResult();
             }
         }
 
-        function showResults() {
-            const container = document.getElementById('question-container');
-            const totalCoins = correctAnswers * 10; // 每答對一題獲得10個蔥幣
-            container.innerHTML = `
-                <h2>You have completed the quiz!</h2>
-                <p>Your score: ${correctAnswers}/${maxQuestions}</p>
-                <p>Incorrect questions:</p>
-                <ul>
-                    ${incorrectQuestions.map(question => `<li>${question}</li>`).join('')}
-                </ul>
-                <p>You earned ${totalCoins} coins!</p>
-            `;
+        function nextQuestion() {
+            document.getElementById('result').innerHTML = '';
             document.getElementById('next-btn').style.display = 'none';
-            document.getElementById('submit-btn').style.display = 'none';
+            displayQuestion(selectedQuestions[currentQuestionIndex]);
+        }
+
+        function displayFinalResult() {
+            const container = document.getElementById('question-container');
+            let html = `<h2>You have completed the quiz!</h2>`;
+            html += `<p>Your score: ${score}/10</p>`;
+            html += `<p>Incorrect questions:</p><ul>`;
+            incorrectQuestions.forEach((question) => {
+                html += `<li>${question.question}</li>`;
+            });
+            html += `</ul>`;
+            html += `<p>You earned ${score * 10} coins!</p>`;
+            container.innerHTML = html;
         }
 
         fetchQuestions();
