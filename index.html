@@ -1,129 +1,34 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daily 10 Questions</title>
-    <style>
-        body { font-family: Arial, sans-serif; }
-        .container { max-width: 600px; margin: auto; padding: 20px; }
-        .question { margin-bottom: 20px; }
-        .options { list-style: none; padding: 0; }
-        .options li { margin-bottom: 10px; }
-        #next-btn { display: none; }
-    </style>
+    <title>註冊和登入</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
-        <div id="question-container" class="question"></div>
-        <button onclick="submitAnswer()">Submit</button>
-        <button id="next-btn" onclick="nextQuestion()">Next Question</button>
-        <div id="result"></div>
+        <div class="form-container">
+            <h2>註冊</h2>
+            <form id="register-form">
+                <input type="text" id="username" placeholder="用戶名" required>
+                <input type="password" id="password" placeholder="密碼" required>
+                <button type="submit">註冊</button>
+            </form>
+            <h2>登入</h2>
+            <form id="login-form">
+                <input type="text" id="login-username" placeholder="用戶名" required>
+                <input type="password" id="login-password" placeholder="密碼" required>
+                <button type="submit">登入</button>
+            </form>
+            <div id="g_id_onload"
+                 data-client_id="YOUR_GOOGLE_CLIENT_ID"
+                 data-callback="handleCredentialResponse">
+            </div>
+            <div class="g_id_signin" data-type="standard"></div>
+        </div>
     </div>
-
-    <script>
-        let currentQuestionIndex = 0;
-        let score = 0;
-        let incorrectQuestions = [];
-        let selectedQuestions = [];
-
-        async function fetchQuestions() {
-            const sheetId = '1nVxOrDB6ne5fY9P1Ww3cJJFlyX9S6l5v8ellmsvqTBQ'; // 替換為您的Google試算表ID
-            const apiKey = 'AIzaSyCFOx8km4xgcbcpquTG1VQC4fyffAJH0Xk'; // 替換為您的API金鑰
-            const range = 'Grade1!A2:H'; // 調整為您的試算表名稱和範圍
-            try {
-                const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?key=${apiKey}`);
-                const data = await response.json();
-
-                if (!data.values) {
-                    console.error('No data found');
-                    return;
-                }
-
-                const questions = data.values.map(row => ({
-                    question: row[0],
-                    image: row[1],
-                    options: [row[2], row[3], row[4], row[5]],
-                    answer: row[6],
-                    explanation: row[7]
-                }));
-
-                console.log('Loaded questions:', questions);
-
-                // 隨機選取十個題目
-                const shuffledQuestions = questions.sort(() => 0.5 - Math.random());
-                selectedQuestions = shuffledQuestions.slice(0, 10);
-
-                console.log('Selected questions:', selectedQuestions);
-
-                currentQuestionIndex = 0;
-                score = 0;
-                incorrectQuestions = [];
-                displayQuestion(selectedQuestions[currentQuestionIndex]);
-            } catch (error) {
-                console.error('Fetch error:', error);
-            }
-        }
-
-        function displayQuestion(question) {
-            console.log('Displaying question:', question);
-
-            const container = document.getElementById('question-container');
-            let html = `<p>Question ${currentQuestionIndex + 1}: ${question.question}</p>`;
-            if (question.image) {
-                html += `<img src="${question.image}" alt="Question Image"><br>`;
-            }
-            html += `<ul class="options">`;
-            question.options.forEach((option, index) => {
-                html += `<li><input type="radio" name="option" value="${option}"> ${option}</li>`;
-            });
-            html += `</ul>`;
-            container.innerHTML = html;
-        }
-
-        function submitAnswer() {
-            const selectedOption = document.querySelector('input[name="option"]:checked');
-            if (!selectedOption) {
-                alert("Please select an answer.");
-                return;
-            }
-            const result = document.getElementById('result');
-            if (selectedOption.value === selectedQuestions[currentQuestionIndex].answer) {
-                score++;
-                result.innerHTML = `Correct! Explanation: ${selectedQuestions[currentQuestionIndex].explanation}`;
-            } else {
-                incorrectQuestions.push(selectedQuestions[currentQuestionIndex]);
-                result.innerHTML = `Wrong answer. Explanation: ${selectedQuestions[currentQuestionIndex].explanation}`;
-            }
-
-            if (currentQuestionIndex < selectedQuestions.length - 1) {
-                document.getElementById('next-btn').style.display = 'block';
-            } else {
-                displayFinalResult();
-            }
-        }
-
-        function nextQuestion() {
-            currentQuestionIndex++;
-            document.getElementById('result').innerHTML = '';
-            document.getElementById('next-btn').style.display = 'none';
-            displayQuestion(selectedQuestions[currentQuestionIndex]);
-        }
-
-        function displayFinalResult() {
-            const container = document.getElementById('question-container');
-            let html = `<h2>You have completed the quiz!</h2>`;
-            html += `<p>Your score: ${score}/10</p>`;
-            html += `<p>Incorrect questions:</p><ul>`;
-            incorrectQuestions.forEach((question) => {
-                html += `<li>${question.question}</li>`;
-            });
-            html += `</ul>`;
-            html += `<p>You earned ${score * 10} coins!</p>`;
-            container.innerHTML = html;
-        }
-
-        fetchQuestions();
-    </script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="script.js"></script>
 </body>
 </html>
